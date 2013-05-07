@@ -413,3 +413,8 @@ void X11OpenGLWindow::setKeyboardCallback( b3KeyboardCallback	keyboardCallback)
 	m_data->m_keyboardCallback = keyboardCallback;
 
 }
+
+b3KeyboardCallback	X11OpenGLWindow::getKeyboardCallback()
+{
+	return m_data->m_keyboardCallback;
+}
