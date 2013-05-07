@@ -3,8 +3,14 @@
 //
 // Thanks to http://wili.cc/blog/opengl-cs.html for OpenGL compute shader programming tutorial.
 //
-#include <GL/glew.h>
-#include <GL/glfw.h>
+//removed glfw dependency, added simple Window creation
+
+#include "btgui/OpenGLWindow/OpenGLInclude.h"
+#include "btgui/OpenGLWindow/Win32OpenGLWindow.h"
+#include "btgui/OpenGLWindow/b3Quickprof.h"
+
+b3gDefaultOpenGLWindow* window = 0;
+
 
 #ifdef _WIN32
 #include <sys/types.h>
@@ -52,7 +58,6 @@ LoadShader(
   static GLchar srcbuf[16384];
   FILE *fp = fopen(shaderSourceFilename, "rb");
   if (!fp) {
-    fprintf(stderr, "failed to load shader: %s\n", shaderSourceFilename);
     return false;
   }
   fseek(fp, 0, SEEK_END);
@@ -106,24 +111,20 @@ LinkShader(
   return true;
 }
 
-void GLFWCALL key(
-  int key,
-  int action)
-{
-  if (action != GLFW_PRESS) return;
 
-  switch (key) {
-  case GLFW_KEY_ESC:
-    exit(1);
-    break;
-  default:
-    return;
-  }
+
+
+void keyboardCallback(int keycode, int state)
+{
+	printf("hello key %d, state %d\n", keycode,state);
+	if (keycode == 27)
+	{
+		if (window)
+			window->setRequestExit();
+	} 
 }
 
-void GLFWCALL reshape(
-  int width,
-  int height)
+void resizeCallback( float width, float height)
 {
   GLfloat h = (GLfloat) height / (GLfloat) width;
   GLfloat xmax, znear, zfar;
@@ -151,7 +152,7 @@ void updateTex(int frame)
 
 }
 
-void GLFWCALL draw()
+void  draw()
 {
   glClearColor(0.075, 0.075, 0.2, 1.0);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -270,7 +271,26 @@ myInit()
   //
   // compute shader setup.
   //
-  bool ret = LoadShader(GL_COMPUTE_SHADER, gComputeShader, "ao.comp");
+
+  bool ret  = false;
+
+  //this is a bit more fool-proof
+  const char* prefix[]={"./","../","../../","../../../","../../../../"};
+  const char* shaderSourceFilename = "ao.comp";
+  int numPrefixes = sizeof(prefix)/sizeof(char*);
+  for (int i=0;!ret && i<numPrefixes;i++)
+  {
+		char relativeFileName[1024];
+		sprintf(relativeFileName,"%s%s",prefix[i],shaderSourceFilename);
+		ret = LoadShader(GL_COMPUTE_SHADER, gComputeShader, relativeFileName);
+  }
+    
+  assert(ret);
+  if (!ret)
+  {
+	  fprintf(stderr, "failed to load shader: %s\n", shaderSourceFilename);
+	  exit(0);
+  }
 
   gComputeProg = glCreateProgram();
   glAttachShader(gComputeProg, gComputeShader);
@@ -297,13 +317,13 @@ myInit()
 
 int main(int argc, char *argv[])
 {
+	window = new b3gDefaultOpenGLWindow;
+	b3gWindowConstructionInfo ci;
+	
+	window->createWindow(ci);
+	window->setWindowTitle("OpenGL 4.3 Compute Shader Test ao_bench");
 
-  glfwInit();
-  glfwOpenWindow(0, 0, 0, 0, 0, 0, 32, 0, GLFW_WINDOW);
-  glfwSetWindowTitle("Compute Shader Test");
-  glfwSwapInterval(1);
-
-  // glewInit() should be called after glfw initialization.
+  // glewInit() should be called after window initialization.
   if (GLEW_OK != glewInit()) {
     fprintf(stderr, "Failed to initialize GLEW. Exitting.\n");
     exit(1);
@@ -316,26 +336,33 @@ int main(int argc, char *argv[])
 
   myInit();
 
-  glfwSetWindowSizeCallback(reshape);
-  glfwSetKeyCallback(key);
+  window->setResizeCallback(resizeCallback);
+  window->setKeyboardCallback(keyboardCallback);
 
-  double startTime = glfwGetTime();
+  b3Clock timer;
+
+  double startTime = timer.getTimeMicroseconds()/1e3f;
   int i = 0;
-  while (glfwGetWindowParam(GLFW_OPENED)) {
+  while (!window->requestedExit())
+  {
+	window->startRendering();
     updateTex(i);
     draw();
-    glfwSwapBuffers();
-
+	window->endRendering();
     i++;
-    if (i >= 1024) {
+    if ((i &127)==0)//once every 128 frames
+	{
+		
       printf("Rendered 1024 frames.\n");
-      double endTime = glfwGetTime();
-      printf("Time to render 1024 frames: %f sec(s)\n", endTime - startTime);
-      break;
+      double endTime = timer.getTimeMicroseconds()/1e3f;
+	  
+      printf("Time to render 1024 frames: %f millisec(s)\n", (endTime - startTime)/128.f);
+	  startTime = endTime;
+      //break;
     }
   }
 
-  glfwTerminate();
+  delete window;
 
   return 0;
 }

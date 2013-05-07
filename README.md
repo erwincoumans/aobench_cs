@@ -9,23 +9,30 @@
 OpenGL compute shader capable hardware and driver. Currently,
 
 * NVIDIA GeForce
-* AMD Radeon
+* AMD Radeon (Catalyst 13.4 or later driver)
 
 is said to be able to run compute shader.
 
-### Software
-
-* GLFW http://www.glfw.org/
-* GLEW http://glew.sourceforge.net/
-
-
 ## How to build and run
 
-Edit Makefile, then
+Windows:
+Click on build/vs2010.bat and open build/vs2010/0_ao_bench_cs.sln
 
-    $ make
-    $ ./aobench_cs
+Linux
+In a terminal, 
+./premake_linux gmake
+cd gmake
+make
 
-## Licnese
+Mac OSX
+Same as Linux or for XCode 4:
+./premake_osx xcode4
+or
+click on build/xcode4.command
+
+Run:
+Just execute the binary in the bin folder
+
+## License
 
 2-clause BSD.
