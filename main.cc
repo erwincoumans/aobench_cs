@@ -6,8 +6,16 @@
 //removed glfw dependency, added simple Window creation
 
 #include "btgui/OpenGLWindow/OpenGLInclude.h"
-#include "btgui/OpenGLWindow/Win32OpenGLWindow.h"
 #include "btgui/OpenGLWindow/b3Quickprof.h"
+#ifdef _WIN32
+	#include "btgui/OpenGLWindow/Win32OpenGLWindow.h"
+#elif defined  __APPLE__
+	#include "btgui/OpenGLWindow/MacOpenGLWindow.h"
+#else
+//assume linux
+	#include "btgui/OpenGLWindow/X11OpenGLWindow.h"
+#endif
+
 
 b3gDefaultOpenGLWindow* window = 0;
 
