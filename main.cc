@@ -5,6 +5,7 @@
 //
 //removed glfw dependency, added simple Window creation
 
+#include "btgui/OpenGLWindow/b3CommandLineArgs.h"
 #include "btgui/OpenGLWindow/OpenGLInclude.h"
 #include "btgui/OpenGLWindow/b3Quickprof.h"
 #ifdef _WIN32
@@ -272,7 +273,7 @@ GLuint genTexture() {
 
 
 void
-myInit()
+myInit(const char* shaderSourceFilename )
 {
   gTexID = genTexture();
 
@@ -284,7 +285,7 @@ myInit()
 
   //this is a bit more fool-proof
   const char* prefix[]={"./","../","../../","../../../","../../../../"};
-  const char* shaderSourceFilename = "ao.comp";
+  
   int numPrefixes = sizeof(prefix)/sizeof(char*);
   for (int i=0;!ret && i<numPrefixes;i++)
   {
@@ -325,6 +326,9 @@ myInit()
 
 int main(int argc, char *argv[])
 {
+	
+	b3CommandLineArgs args(argc,argv);
+	
 	window = new b3gDefaultOpenGLWindow;
 	b3gWindowConstructionInfo ci;
 	
@@ -337,12 +341,18 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  printf("Use --shader=ao_fp64.comp to select shader.\n");
   printf("GL_VENDOR                   : %s\n", glGetString(GL_VENDOR));
   printf("GL_RENDERER                 : %s\n", glGetString(GL_RENDERER));
   printf("GL_VERSION                  : %s\n", glGetString(GL_VERSION));
   printf("GL_SHADING_LANGUAGE_VERSION : %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-  myInit();
+
+  char* shaderSourceFilename = "ao_fp32.comp";
+
+  args.GetCmdLineArgument("shader", shaderSourceFilename);
+
+  myInit(shaderSourceFilename);
 
   window->setResizeCallback(resizeCallback);
   window->setKeyboardCallback(keyboardCallback);
