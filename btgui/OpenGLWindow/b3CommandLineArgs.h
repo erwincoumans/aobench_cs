@@ -54,7 +54,7 @@ public:
 	}
 
 	template <typename T>
-	void GetCmdLineArgument(const char *arg_name, T &val);
+	void GetCmdLineArgument(const char *arg_name, T &val,  T& defaultValue);
 
 	int ParsedArgc()
 	{
@@ -63,18 +63,21 @@ public:
 };
 
 template <typename T>
-void b3CommandLineArgs::GetCmdLineArgument(const char *arg_name, T &val)
+void b3CommandLineArgs::GetCmdLineArgument(const char *arg_name, T &val,  T& defaultValue)
 {
 	using namespace std;
 	map<string, string>::iterator itr;
 	if ((itr = pairs.find(arg_name)) != pairs.end()) {
 		istringstream strstream(itr->second);
 		strstream >> val;
-    }
+    } else
+	{
+		val = defaultValue;
+	}
 }
 
 template <>
-void b3CommandLineArgs::GetCmdLineArgument<char*>(const char* arg_name, char* &val)
+void b3CommandLineArgs::GetCmdLineArgument<char*>(const char* arg_name, char* &val,  char* & defaultValue)
 {
 	using namespace std;
 	map<string, string>::iterator itr;
@@ -85,7 +88,7 @@ void b3CommandLineArgs::GetCmdLineArgument<char*>(const char* arg_name, char* &v
 		std::strcpy(val, s.c_str());
 
 	} else {
-    	val = NULL;
+    	val = defaultValue;
 	}
 }
 

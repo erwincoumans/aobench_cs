@@ -348,10 +348,11 @@ int main(int argc, char *argv[])
   printf("GL_SHADING_LANGUAGE_VERSION : %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 
-  char* shaderSourceFilename = "ao_fp32.comp";
+  char* shaderSourceFilename;
+  char* def = "ao_fp32.comp";
 
-  args.GetCmdLineArgument("shader", shaderSourceFilename);
-
+  args.GetCmdLineArgument("shader", shaderSourceFilename,def);
+  
   myInit(shaderSourceFilename);
 
   window->setResizeCallback(resizeCallback);
