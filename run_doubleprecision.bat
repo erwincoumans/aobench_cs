@@ -1,0 +1,1 @@
+bin\aobench_cs --shader=ao_fp64.comp
